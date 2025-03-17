@@ -16,6 +16,21 @@ func echoCommand(echo_args []string) {
 	fmt.Println(strings.Join(echo_args, " "))
 }
 
+func typeCommand(type_arg string) {
+	builtin_text := " is a shell builtin"
+	func_register := map[string]string{
+		"echo": builtin_text,
+		"exit": builtin_text,
+		"type": builtin_text,
+	}
+
+	if _, exists := func_register[type_arg]; exists {
+		fmt.Printf("%s%s\n", type_arg, func_register[type_arg])
+	} else {
+		fmt.Printf("%s: not found\n", type_arg)
+	}
+}
+
 func handler(command string) {
 	command = strings.TrimSpace(command)
 	var args = strings.Split(command, " ")
@@ -33,6 +48,8 @@ func handler(command string) {
 		return
 	case "echo":
 		echoCommand(args[1:])
+	case "type":
+		typeCommand(args[1])
 	default:
 		invalidCommand(command)
 	}
