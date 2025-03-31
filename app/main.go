@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -24,11 +25,38 @@ func typeCommand(type_arg string) {
 		"type": builtin_text,
 	}
 
+	for _, path_to_file := range readPATHDirs() {
+		file := filepath.Base(path_to_file)
+		_, exists := func_register[file]
+		if exists {
+			continue
+		} else {
+			func_register[file] = " is " + path_to_file
+		}
+	}
+
 	if _, exists := func_register[type_arg]; exists {
 		fmt.Printf("%s%s\n", type_arg, func_register[type_arg])
 	} else {
 		fmt.Printf("%s: not found\n", type_arg)
 	}
+}
+
+func readPATHDirs() []string {
+	result := []string{}
+	pathDirs := os.Getenv("PATH")
+	for _, path := range strings.Split(pathDirs, ":") {
+		dirContent, _ := os.ReadDir(path)
+
+		for _, entry := range dirContent {
+			if entry.IsDir() {
+				continue
+			}
+			result = append(result, path+"/"+entry.Name())
+		}
+	}
+
+	return result
 }
 
 func handler(command string) {
