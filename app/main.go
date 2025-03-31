@@ -123,24 +123,46 @@ func readPATHDirs() []string {
 
 func parseArgs(command string) []string {
 	var args []string
-	var current_token string
-	inSingleQuotes := false
+	var current_tokens strings.Builder
+	inSingleQuotes, inDoubleQuotes, isEscapedSeq := false, false, false
 
-	for _, c := range command {
-		if c == '\'' {
-			inSingleQuotes = !inSingleQuotes
-		} else if c == ' ' && !inSingleQuotes {
-			if current_token != "" {
-				args = append(args, current_token)
-				current_token = ""
-			}
-		} else {
-			current_token += string(c)
+	for _, char := range command {
+		if isEscapedSeq {
+			current_tokens.WriteRune(char)
+			isEscapedSeq = false
+			continue
 		}
-	}
 
-	if current_token != "" {
-		args = append(args, current_token)
+		switch char {
+		case '\\':
+			isEscapedSeq = true
+		case '"':
+			inDoubleQuotes = !inDoubleQuotes && !inSingleQuotes
+			if inSingleQuotes {
+				current_tokens.WriteRune('"')
+			}
+		case '\'':
+			inSingleQuotes = !inSingleQuotes && !inDoubleQuotes
+			if inDoubleQuotes {
+				current_tokens.WriteRune('\'')
+			}
+		case ' ':
+			if inSingleQuotes || inDoubleQuotes {
+				current_tokens.WriteRune(' ')
+				continue
+			}
+			if current_tokens.Len() != 0 {
+				args = append(args, current_tokens.String())
+				current_tokens.Reset()
+			}
+		default:
+			current_tokens.WriteRune(char)
+		}
+
+	}
+	if current_tokens.Len() > 0 {
+		args = append(args, current_tokens.String())
+
 	}
 
 	return args
