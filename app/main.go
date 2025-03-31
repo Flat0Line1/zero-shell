@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -51,15 +52,26 @@ func echoCommand(echo_args []string) {
 }
 
 func pwdCommand() {
-	currDir, _ := os.Getwd()
-	fmt.Println(currDir)
+	// currDir, _ := os.Getwd()
+	// fmt.Println(currDir)
+	fmt.Println(os.Getenv("PWD"))
 }
 
 func cdCommand(args []string) {
-	command := args[0]
-	if err := os.Chdir(command); err != nil {
-		fmt.Fprintf(os.Stdout, "%s: No such file or directory\n", command)
+	path := args[0]
+	isAbsPath := path[0] == '/'
+
+	if !isAbsPath {
+		path = filepath.Join(os.Getenv("PWD"), path)
 	}
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("%s: No such file or directory\n", path)
+		return
+	}
+	os.Setenv("PWD", path)
+	// if err := os.Chdir(command); err != nil {
+	// 	fmt.Fprintf(os.Stdout, "%s: No such file or directory\n", command)
+	// }
 }
 
 func typeCommand(type_arg string) {
