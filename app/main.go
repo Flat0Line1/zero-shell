@@ -61,7 +61,9 @@ func cdCommand(args []string) {
 	path := args[0]
 	isAbsPath := path[0] == '/'
 
-	if !isAbsPath {
+	if path == "~" {
+		path = os.Getenv("HOME")
+	} else if !isAbsPath {
 		path = filepath.Join(os.Getenv("PWD"), path)
 	}
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
