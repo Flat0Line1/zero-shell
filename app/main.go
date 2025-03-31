@@ -49,6 +49,7 @@ func execCommand(args []string) {
 
 func echoCommand(echo_args []string) {
 	fmt.Println(strings.Join(echo_args, " "))
+
 }
 
 func pwdCommand() {
@@ -58,7 +59,7 @@ func pwdCommand() {
 }
 
 func cdCommand(args []string) {
-	path := args[0]
+	path := strings.TrimSpace(args[0])
 	isAbsPath := path[0] == '/'
 
 	if path == "~" {
@@ -120,21 +121,47 @@ func readPATHDirs() []string {
 	return result
 }
 
+func parseArgs(command string) []string {
+	var args []string
+	var current_token string
+	inSingleQuotes := false
+
+	for _, c := range command {
+		if c == '\'' {
+			inSingleQuotes = !inSingleQuotes
+		} else if c == ' ' && !inSingleQuotes {
+			if current_token != "" {
+				args = append(args, current_token)
+				current_token = ""
+			}
+		} else {
+			current_token += string(c)
+		}
+	}
+
+	if current_token != "" {
+		args = append(args, current_token)
+	}
+
+	return args
+}
+
 func handler(command string) {
-	command = strings.TrimSpace(command)
-	var args = strings.Split(command, " ")
+	command = strings.Trim(command, "\r\n")
+	args := parseArgs(command)
 
 	switch args[0] {
 	case "exit":
+		exit_code := 0
 		if len(args) > 1 {
-			exit_code, err := strconv.Atoi(args[1])
+			new_code, err := strconv.Atoi(args[1])
+			exit_code = new_code
 			if err != nil {
 				fmt.Println("Invalid exit code")
 				return
 			}
-			os.Exit(exit_code)
 		}
-		return
+		os.Exit(exit_code)
 	case "echo":
 		echoCommand(args[1:])
 	case "pwd":
