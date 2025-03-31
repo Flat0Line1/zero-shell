@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -11,6 +13,37 @@ import (
 
 func invalidCommand(command string) {
 	fmt.Printf("%s: command not found\n", command)
+}
+
+func execCommand(args []string) {
+	execCommands := make(map[string]string)
+	for _, path_to_file := range readPATHDirs() {
+		file := filepath.Base(path_to_file)
+		if _, exists := execCommands[file]; exists {
+			continue
+		} else {
+			execCommands[file] = path_to_file
+		}
+	}
+
+	if _, exists := execCommands[args[0]]; exists {
+		cmd := exec.Command(args[0], args[1:]...)
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Start()
+
+		buffer := bufio.NewReader(stdout)
+		for {
+			line, _, err := buffer.ReadLine()
+			if err == io.EOF {
+				break
+			}
+			fmt.Println(string(line))
+		}
+
+	} else {
+		invalidCommand(args[0])
+	}
+
 }
 
 func echoCommand(echo_args []string) {
@@ -43,6 +76,7 @@ func typeCommand(type_arg string) {
 }
 
 func readPATHDirs() []string {
+	// everything easy change to os.exec.LookPath(command)
 	result := []string{}
 	pathDirs := os.Getenv("PATH")
 	for _, path := range strings.Split(pathDirs, ":") {
@@ -79,7 +113,7 @@ func handler(command string) {
 	case "type":
 		typeCommand(args[1])
 	default:
-		invalidCommand(command)
+		execCommand(args)
 	}
 }
 
