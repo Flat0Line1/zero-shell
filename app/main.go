@@ -51,9 +51,15 @@ func echoCommand(echo_args []string) {
 }
 
 func pwdCommand() {
-	// p, _ = os.Getwd()
-	// fmt.Println(p)
-	fmt.Println(os.Getenv("PWD"))
+	currDir, _ := os.Getwd()
+	fmt.Println(currDir)
+}
+
+func cdCommand(args []string) {
+	command := args[0]
+	if err := os.Chdir(command); err != nil {
+		fmt.Fprintf(os.Stdout, "%s: No such file or directory\n", command)
+	}
 }
 
 func typeCommand(type_arg string) {
@@ -119,6 +125,8 @@ func handler(command string) {
 		echoCommand(args[1:])
 	case "pwd":
 		pwdCommand()
+	case "cd":
+		cdCommand(args[1:])
 	case "type":
 		typeCommand(args[1])
 	default:
@@ -130,6 +138,10 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
+		// currDir, _ := os.Getwd()
+		// splitedCurrDir := strings.Split(currDir, "/")
+		// lastThreeEntries := strings.Join(splitedCurrDir[len(splitedCurrDir)-1:], "/")
+		// fmt.Fprint(os.Stdout, lastThreeEntries+" $ ")
 		fmt.Fprint(os.Stdout, "$ ")
 		user_command, err := reader.ReadString('\n')
 		if err != nil {
