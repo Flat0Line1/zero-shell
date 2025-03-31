@@ -50,12 +50,19 @@ func echoCommand(echo_args []string) {
 	fmt.Println(strings.Join(echo_args, " "))
 }
 
+func pwdCommand() {
+	// p, _ = os.Getwd()
+	// fmt.Println(p)
+	fmt.Println(os.Getenv("PWD"))
+}
+
 func typeCommand(type_arg string) {
 	builtin_text := " is a shell builtin"
 	func_register := map[string]string{
 		"echo": builtin_text,
 		"exit": builtin_text,
 		"type": builtin_text,
+		"pwd":  builtin_text,
 	}
 
 	for _, path_to_file := range readPATHDirs() {
@@ -110,6 +117,8 @@ func handler(command string) {
 		return
 	case "echo":
 		echoCommand(args[1:])
+	case "pwd":
+		pwdCommand()
 	case "type":
 		typeCommand(args[1])
 	default:
